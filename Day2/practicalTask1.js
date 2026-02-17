@@ -1,34 +1,44 @@
-// Demonstrates the use of setTimeout, Promises, and async/await in JavaScript.
-
-// Example 1: Using setTimeout to delay execution.
+/**
+ * Demonstrates the use of setTimeout to delay execution.
+ * Logs messages before, during, and after the timeout.
+ */
 (() => {
-    console.log("before"); // Log before the timeout
+    console.log("before");
     setTimeout(() => {
-        console.log("in timeout"); // Log after a 3-second delay
+        console.log("in timeout");
     }, 3000);
-    console.log("after"); // Log immediately after setting the timeout
+    console.log("after");
 })();
 
-// Example 2: Using Promises to handle asynchronous operations.
-let count = 2; // Simulate a condition for resolving or rejecting the Promise
-
+/**
+ * Demonstrates the use of Promises to handle asynchronous operations.
+ * Resolves or rejects based on the value of `count`.
+ * @returns {Promise<string>} Resolves with "foo" or rejects with "GG".
+ */
+let count = 2;
 const myPromise = () => new Promise((resolve, reject) => {
-    if (count === 1) resolve("foo"); // Resolve the Promise if count is 1
-    else reject("GG"); // Reject the Promise otherwise
+    if (count === 1) resolve("foo");
+    else reject("GG");
 });
 
-// Handle the Promise using then and catch.
+/**
+ * Handles the myPromise Promise using then and catch.
+ * Logs the resolved value or rejection reason.
+ */
 await myPromise()
-    .then((value) => { console.log(value); }) // Log the resolved value
-    .catch((value) => { console.log("rejected", value); }); // Log the rejection reason
+    .then((value) => { console.log(value); })
+    .catch((value) => { console.log("rejected", value); });
 
-// Example 3: Using async/await to handle Promises more cleanly.
+/**
+ * Demonstrates the use of async/await to handle Promises.
+ * Logs the resolved value or rejection reason.
+ */
 (async () => {
     await myPromise()
         .then((value) => {
-            console.log("Value accepted is", value); // Log the resolved value
+            console.log("Value accepted is", value);
         })
         .catch((err) => {
-            console.error("Value rejected is", err); // Log the rejection reason
+            console.error("Value rejected is", err);
         });
 })();

@@ -1,4 +1,7 @@
-// Simulates fetching user data with a delay using a Promise.
+/**
+ * Simulates fetching user data with a delay using a Promise.
+ * @returns {Promise<string>} Resolves with user data or rejects with an error message.
+ */
 function fetchUser() {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
@@ -13,16 +16,18 @@ function fetchUser() {
   });
 }
 
-// Asynchronous function to handle the fetchUser Promise.
+/**
+ * Handles the fetchUser Promise and logs the result or error.
+ * @returns {Promise<void>} Logs the resolved value or error message.
+ */
 const data = async () => {
   try {
-    // Wait for the fetchUser Promise to resolve or reject
     await fetchUser()
       .then((value) => {
-        console.log("Value Return", value); // Log the resolved value
+        console.log("Value Return", value);
       });
   } catch (error) {
-    console.error("Error is here", error); // Log any errors that occur
+    console.error("Error is here", error);
   }
 };
 
