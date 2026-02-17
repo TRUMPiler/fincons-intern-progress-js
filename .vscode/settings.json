@@ -1,0 +1,5 @@
+{
+    "chat.allowAnonymousAccess": true,
+    "chat.disableAIFeatures": false,
+    "chat.editMode.hidden": true
+}
