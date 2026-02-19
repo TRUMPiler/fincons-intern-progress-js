@@ -1,5 +1,6 @@
 {
     "chat.allowAnonymousAccess": true,
     "chat.disableAIFeatures": false,
-    "chat.editMode.hidden": true
+    "chat.editMode.hidden": true,
+    "editor.cursorBlinking": "smooth"
 }
