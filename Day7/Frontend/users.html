@@ -1,0 +1,100 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Users - API Frontend</title>
+  <style>body{font-family:Arial,Helvetica,sans-serif;max-width:900px;margin:20px}input,textarea{width:100%;padding:8px;margin:6px 0}button{padding:8px 12px;margin:6px 0}</style>
+</head>
+<body>
+  <h1>Users</h1>
+
+  <label> <input id="baseUrl" value="http://localhost:8080" hidden/></label>
+  <!-- <label>Auth Token (optional) <input id="token" placeholder="Bearer token..." /></label> -->
+
+  <section>
+    <h2>Create user</h2>
+    <form id="createForm">
+      <input id="name" placeholder="Name" required />
+      <input id="email" placeholder="Email" required />
+      <input id="password" placeholder="Password" required />
+      <select id="role"><option value="user">user</option><option value="admin">admin</option></select>
+      <button type="submit">Create User</button>
+    </form>
+    <pre id="createResult" style="background:#f9f9f9;padding:10px"></pre>
+  </section>
+
+  <section>
+    <h2>List users</h2>
+    <button id="loadUsers">Load Users</button>
+    <pre id="usersOutput" style="background:#f4f4f4;padding:10px;white-space:pre-wrap"></pre>
+  </section>
+
+<script>
+function headers(token){
+  const h={"Content-Type":"application/json"};
+  if(token) h['Authorization']=token;
+  return h;
+}
+async function fetchJson(url, opts){
+  const res = await fetch(url, opts);
+  const text = await res.text();
+  try{return JSON.parse(text);}catch(e){return {raw:text,status:res.status}};
+}
+
+document.getElementById('createForm').addEventListener('submit', async e => {
+  e.preventDefault();
+
+  const base = document.getElementById('baseUrl').value.replace(/\/$/, '');
+
+  const payload = {
+    name: document.getElementById('name').value,
+    email: document.getElementById('email').value,
+    password: document.getElementById('password').value,
+    role: document.getElementById('role').value
+  };
+
+  const res = await fetchJson(base + '/api/users', {
+    method: 'POST',
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+
+
+  if (res.success) {
+    alert(res.message || "User created successfully");
+    window.location.reload();  // reload page on success
+  } else {
+    alert(res.message || "Failed to create user");
+  }
+});
+
+document.getElementById('loadUsers').addEventListener('click', async () => {
+  const base = document.getElementById('baseUrl').value.replace(/\/$/, '');
+  const out = document.getElementById('usersOutput');
+  out.textContent = 'Loading...';
+
+  const result = await fetchJson(base + '/api/users');
+
+  if (!result.success) {
+    out.textContent = result.message || "Failed to load users";
+    return;
+  }
+
+  const users = result.data;
+
+  if (!users.length) {
+    out.textContent = "No users found.";
+    return;
+  }
+
+  out.textContent = users.map(user => `
+ID: ${user._id}
+Name: ${user.name}
+Email: ${user.email}
+Role: ${user.role}
+-------------------------
+`).join("");
+});
+</script>
+</body>
+</html>

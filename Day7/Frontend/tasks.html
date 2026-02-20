@@ -1,0 +1,246 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Tasks - API Frontend</title>
+  <style>
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      max-width: 900px;
+      margin: 20px auto;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 8px;
+      margin: 6px 0;
+    }
+    button {
+      padding: 8px 12px;
+      margin: 6px 4px 6px 0;
+      cursor: pointer;
+    }
+    section {
+      margin-bottom: 40px;
+    }
+    pre {
+      background: #f4f4f4;
+      padding: 10px;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Tasks API Frontend</h1>
+
+<label>
+  <input id="baseUrl" value="http://localhost:8080" hidden/>
+</label>
+
+<!-- ================= LIST ================= -->
+<section>
+  <h2>List Tasks</h2>
+  <button id="loadTasks">Load Tasks</button>
+  <pre id="tasksOutput"></pre>
+</section>
+
+<!-- ================= CREATE ================= -->
+<section>
+  <h2>Create Task</h2>
+  <form id="createForm">
+    <input id="createTitle" placeholder="Title" required />
+    <textarea id="createDesc" placeholder="Description"></textarea>
+    <input id="createAuthor" placeholder="Author (userId)" />
+    <button type="submit">Create</button>
+  </form>
+  <pre id="createResult"></pre>
+</section>
+
+<!-- ================= UPDATE ================= -->
+<section>
+  <h2>Update Task</h2>
+  <form id="updateForm">
+    <input id="updateId" placeholder="Task ID" required />
+    <input id="updateTitle" placeholder="New Title" />
+    <textarea id="updateDesc" placeholder="New Description"></textarea>
+    <button type="submit">Update</button>
+  </form>
+  <pre id="updateResult"></pre>
+</section>
+
+<!-- ================= MARK / DELETE ================= -->
+<section>
+  <h2>Mark Complete / Delete</h2>
+  <input id="actionId" placeholder="Task ID" />
+  <button id="markBtn">Mark Complete</button>
+  <button id="deleteBtn">Delete</button>
+  <pre id="actionResult"></pre>
+</section>
+
+<script>
+
+// ================= HELPER =================
+
+function getBaseUrl() {
+  return document.getElementById("baseUrl").value.replace(/\/$/, "");
+}
+
+function getHeaders() {
+  return {
+    "Content-Type": "application/json"
+  };
+}
+
+async function fetchJson(url, options = {}) {
+  try {
+    const res = await fetch(url, options);
+    const text = await res.text();
+
+    try {
+      return JSON.parse(text);
+    } catch {
+      return { raw: text, status: res.status };
+    }
+
+  } catch (error) {
+    return { error: error.message };
+  }
+}
+
+// ================= LOAD TASKS =================
+
+document.getElementById("loadTasks").addEventListener("click", async () => {
+  const output = document.getElementById("tasksOutput");
+  output.textContent = "Loading...";
+
+  const result = await fetchJson(getBaseUrl() + "/api/tasks");
+
+  if (!result.success) {
+    output.textContent = result.message || "Failed to load tasks";
+    return;
+  }
+
+  const tasks = result.data;
+
+  if (tasks.length === 0) {
+    output.textContent = "No tasks found.";
+    return;
+  }
+
+  output.textContent = tasks.map(task => `
+ID: ${task._id}
+Title: ${task.title}
+Description: ${task.description}
+Completed: ${task.markAsCompleted}
+-----------------------------
+`).join("");
+});
+
+// ================= CREATE TASK =================
+
+document.getElementById("createForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const payload = {
+    title: document.getElementById("createTitle").value,
+    description: document.getElementById("createDesc").value,
+    author: document.getElementById("createAuthor").value || undefined
+  };
+
+  const result = await fetchJson(getBaseUrl() + "/api/tasks", {
+    method: "POST",
+    headers: getHeaders(),
+    body: JSON.stringify(payload)
+  });
+
+  if (result.success) {
+    alert(result.message);   // show backend message
+    window.location.reload(); // reload page
+  } else {
+    alert(result.message || "Something went wrong");
+  }
+});
+
+// ================= UPDATE TASK =================
+
+document.getElementById("updateForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const id = document.getElementById("updateId").value;
+
+  if (!id) {
+    alert("Please enter Task ID");
+    return;
+  }
+
+  const payload = {};
+  const title = document.getElementById("updateTitle").value;
+  const desc = document.getElementById("updateDesc").value;
+
+  if (title) payload.title = title;
+  if (desc) payload.description = desc;
+
+  const result = await fetchJson(
+    getBaseUrl() + "/api/tasks/update/" + encodeURIComponent(id),
+    {
+      method: "PUT",
+      headers: getHeaders(),
+      body: JSON.stringify(payload)
+    }
+  );
+
+
+  if (result && result._id) {
+    alert("Task updated successfully");
+  
+    document.getElementById("loadTasks").click();
+  } else {
+    alert(result.message || "Failed to update task");
+  }
+});
+
+// ================= MARK COMPLETE =================
+document.getElementById("markBtn").addEventListener("click", async () => {
+  const id = document.getElementById("actionId").value;
+
+  if (!id) {
+    alert("Please enter Task ID");
+    return;
+  }
+
+  const result = await fetchJson(
+    getBaseUrl() + "/api/tasks/" + encodeURIComponent(id),
+    {
+      method: "PUT",
+      headers: getHeaders()
+    }
+  );
+
+  if (result.success) {
+    alert(result.message);   // show success message
+    window.location.reload(); // reload page
+  } else {
+    alert(result.message || "Something went wrong");
+  }
+});
+
+// ================= DELETE TASK =================
+
+document.getElementById("deleteBtn").addEventListener("click", async () => {
+  const id = document.getElementById("actionId").value;
+
+  const result = await fetchJson(
+    getBaseUrl() + "/api/tasks/" + encodeURIComponent(id),
+    {
+      method: "DELETE",
+      headers: getHeaders()
+    }
+  );
+
+  document.getElementById("actionResult").textContent =
+    JSON.stringify(result, null, 2);
+});
+
+</script>
+</body>
+</html>
